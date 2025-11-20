@@ -324,7 +324,7 @@ const Hero = () => {
               transition={{ type: 'spring', stiffness: 300, damping: 10 }}
             >
               <img 
-                src="https://s7.ezgif.com/tmp/ezgif-7f2a8dc2f700df1a.jpg" 
+                src="https://res.cloudinary.com/dzc70c3lw/image/upload/v1747502112/1711743254380_w86f5m.jpg" 
                 alt="Jaya Charan - AI Engineer"
                 className="hero-image"
                 loading="eager"
