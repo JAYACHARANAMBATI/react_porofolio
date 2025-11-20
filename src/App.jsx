@@ -8,9 +8,8 @@ import {
 } from 'lucide-react'
 import './App.css'
 
-// Header Component
+// Bootstrap Header Component
 const Header = ({ activeSection, setActiveSection }) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
 
   useEffect(() => {
@@ -18,46 +17,9 @@ const Header = ({ activeSection, setActiveSection }) => {
       setIsScrolled(window.scrollY > 50)
     }
     
-    // Close mobile menu when scrolling
-    const handleScrollClose = () => {
-      if (isMenuOpen) {
-        setIsMenuOpen(false)
-      }
-    }
-    
     window.addEventListener('scroll', handleScroll)
-    window.addEventListener('scroll', handleScrollClose)
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll)
-      window.removeEventListener('scroll', handleScrollClose)
-    }
-  }, [isMenuOpen])
-
-  // Close mobile menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (isMenuOpen && !event.target.closest('.header')) {
-        setIsMenuOpen(false)
-      }
-    }
-
-    document.addEventListener('click', handleClickOutside)
-    return () => document.removeEventListener('click', handleClickOutside)
-  }, [isMenuOpen])
-
-  // Prevent body scroll when mobile menu is open
-  useEffect(() => {
-    if (isMenuOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = 'unset'
-    }
-
-    return () => {
-      document.body.style.overflow = 'unset'
-    }
-  }, [isMenuOpen])
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const navItems = [
     { href: '#home', label: 'Home', icon: <User size={18} /> },
@@ -76,115 +38,90 @@ const Header = ({ activeSection, setActiveSection }) => {
       element.scrollIntoView({ behavior: 'smooth' })
       setActiveSection(sectionId.replace('#', ''))
     }
-    setIsMenuOpen(false)
   }
 
   return (
-    <motion.header
-      className={`header ${isScrolled ? 'scrolled' : ''}`}
+    <motion.nav 
+      className={`navbar navbar-expand-lg fixed-top ${isScrolled ? 'navbar-scrolled' : 'navbar-transparent'}`}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.6 }}
     >
-      <div className="header-container">
-        <motion.div 
-          className="logo"
+      <div className="container-fluid">
+        <motion.a 
+          className="navbar-brand d-flex align-items-center"
+          href="#home"
+          onClick={(e) => {
+            e.preventDefault()
+            scrollToSection('#home')
+          }}
           whileHover={{ scale: 1.05 }}
           transition={{ type: 'spring', stiffness: 400, damping: 10 }}
-          onClick={() => scrollToSection('#home')}
         >
-          <span className="logo-text">JC</span>
-          <span className="logo-subtitle">Portfolio</span>
-        </motion.div>
+          <span className="brand-text me-2">JC</span>
+          <span className="brand-subtitle">Portfolio</span>
+        </motion.a>
 
-        <nav className={`nav ${isMenuOpen ? 'nav-open' : ''}`}>
-          <div className="nav-header">
-            <h3>Navigation</h3>
-            <button 
-              className="nav-close"
-              onClick={() => setIsMenuOpen(false)}
-              aria-label="Close menu"
-            >
-              <X size={24} />
-            </button>
+        <button 
+          className="navbar-toggler" 
+          type="button" 
+          data-bs-toggle="collapse" 
+          data-bs-target="#navbarNavAltMarkup" 
+          aria-controls="navbarNavAltMarkup" 
+          aria-expanded="false" 
+          aria-label="Toggle navigation"
+        >
+          <span className="navbar-toggler-icon"></span>
+        </button>
+
+        <div className="collapse navbar-collapse" id="navbarNavAltMarkup">
+          <div className="navbar-nav ms-auto">
+            {navItems.map((item, index) => (
+              <motion.a
+                key={item.href}
+                className={`nav-link d-flex align-items-center ${activeSection === item.href.replace('#', '') ? 'active' : ''}`}
+                href={item.href}
+                onClick={(e) => {
+                  e.preventDefault()
+                  scrollToSection(item.href)
+                }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1, duration: 0.3 }}
+              >
+                <span className="nav-icon me-2">{item.icon}</span>
+                {item.label}
+              </motion.a>
+            ))}
           </div>
-          
-          {navItems.map((item, index) => (
+
+          <div className="d-flex align-items-center ms-3">
             <motion.a
-              key={item.href}
-              href={item.href}
-              className={`nav-link ${activeSection === item.href.replace('#', '') ? 'active' : ''}`}
-              onClick={(e) => {
-                e.preventDefault()
-                scrollToSection(item.href)
-              }}
-              whileHover={{ scale: 1.05, x: 5 }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ 
-                opacity: isMenuOpen ? 1 : 1, 
-                x: isMenuOpen ? 0 : 0 
-              }}
-              transition={{ 
-                delay: isMenuOpen ? index * 0.1 : 0,
-                duration: 0.3 
-              }}
+              href="https://github.com/jayacharanambati"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="social-nav-link me-3"
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              whileTap={{ scale: 0.9 }}
             >
-              <span className="nav-icon">{item.icon}</span>
-              {item.label}
+              <Github size={20} />
             </motion.a>
-          ))}
-          
-          <div className="nav-footer">
-            <div className="nav-social">
-              <motion.a
-                href="https://github.com/jayacharanambati"
-                target="_blank"
-                rel="noopener noreferrer"
-                whileHover={{ scale: 1.1 }}
-                className="nav-social-link"
-              >
-                <Github size={20} />
-              </motion.a>
-              <motion.a
-                href="https://www.linkedin.com/in/jaya-charan-ambati-901052254/"
-                target="_blank"
-                rel="noopener noreferrer"
-                whileHover={{ scale: 1.1 }}
-                className="nav-social-link"
-              >
-                <Linkedin size={20} />
-              </motion.a>
-            </div>
+            <motion.a
+              href="https://www.linkedin.com/in/jaya-charan-ambati-901052254/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="social-nav-link"
+              whileHover={{ scale: 1.1, rotate: -5 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <Linkedin size={20} />
+            </motion.a>
           </div>
-        </nav>
-
-        <motion.button
-          className="menu-toggle"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          whileTap={{ scale: 0.95 }}
-          whileHover={{ scale: 1.05 }}
-          aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-          aria-expanded={isMenuOpen}
-        >
-          <motion.div
-            animate={{ rotate: isMenuOpen ? 180 : 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </motion.div>
-        </motion.button>
+        </div>
       </div>
-      
-      {/* Mobile menu overlay */}
-      <motion.div 
-        className={`nav-overlay ${isMenuOpen ? 'active' : ''}`}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isMenuOpen ? 1 : 0 }}
-        transition={{ duration: 0.3 }}
-        onClick={() => setIsMenuOpen(false)}
-      />
-    </motion.header>
+    </motion.nav>
   )
 }
 
