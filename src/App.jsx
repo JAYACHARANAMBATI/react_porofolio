@@ -1,12 +1,281 @@
-import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import React, { useState, useEffect, forwardRef, useCallback, useImperativeHandle, useMemo } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { 
-  Menu, X, User, Target, Heart, Code, Database, Settings, Brain, 
-  Github, Linkedin, Mail, Phone, Download, ChevronDown, Calendar, 
-  MapPin, Briefcase, GraduationCap, Award, Trophy, 
-  Users, Send 
-} from 'lucide-react'
+  Menu as LucideMenu,
+  X as LucideX,
+  User as LucideUser,
+  Target as LucideTarget,
+  Heart as LucideHeart,
+  Code as LucideCode,
+  Database as LucideDatabase,
+  Settings as LucideSettings,
+  Brain as LucideBrain,
+  Github as LucideGithub,
+  Linkedin as LucideLinkedin,
+  Mail as LucideMail,
+  Phone as LucidePhone,
+  Download as LucideDownload,
+  ChevronDown as LucideChevronDown,
+  Calendar as LucideCalendar,
+  MapPin as LucideMapPin,
+  Briefcase as LucideBriefcase,
+  GraduationCap as LucideGraduationCap,
+  Award as LucideAward,
+  Trophy as LucideTrophy,
+  Users as LucideUsers,
+  Send as LucideSend
+} from 'lucide'
 import './App.css'
+
+// Create React components from Lucide icons
+const createLucideComponent = (iconData) => {
+  return ({ size = 24, color = 'currentColor', strokeWidth = 2, className = '', ...props }) => (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      {...props}
+    >
+      {iconData.map((element, index) => {
+        if (typeof element === 'string') {
+          return <path key={index} d={element} />
+        } else if (Array.isArray(element)) {
+          const [tag, attrs, ...children] = element
+          if (tag === 'path') {
+            return <path key={index} {...attrs} />
+          } else if (tag === 'circle') {
+            return <circle key={index} {...attrs} />
+          } else if (tag === 'line') {
+            return <line key={index} {...attrs} />
+          } else if (tag === 'polyline') {
+            return <polyline key={index} {...attrs} />
+          } else if (tag === 'polygon') {
+            return <polygon key={index} {...attrs} />
+          } else if (tag === 'rect') {
+            return <rect key={index} {...attrs} />
+          } else if (tag === 'ellipse') {
+            return <ellipse key={index} {...attrs} />
+          }
+        }
+        return null
+      })}
+    </svg>
+  )
+}
+
+// Create icon components
+const Menu = createLucideComponent(LucideMenu)
+const X = createLucideComponent(LucideX)
+const User = createLucideComponent(LucideUser)
+const Target = createLucideComponent(LucideTarget)
+const Heart = createLucideComponent(LucideHeart)
+const Code = createLucideComponent(LucideCode)
+const Database = createLucideComponent(LucideDatabase)
+const Settings = createLucideComponent(LucideSettings)
+const Brain = createLucideComponent(LucideBrain)
+const Github = createLucideComponent(LucideGithub)
+const Linkedin = createLucideComponent(LucideLinkedin)
+const Mail = createLucideComponent(LucideMail)
+const Phone = createLucideComponent(LucidePhone)
+const Download = createLucideComponent(LucideDownload)
+const ChevronDown = createLucideComponent(LucideChevronDown)
+const Calendar = createLucideComponent(LucideCalendar)
+const MapPin = createLucideComponent(LucideMapPin)
+const Briefcase = createLucideComponent(LucideBriefcase)
+const GraduationCap = createLucideComponent(LucideGraduationCap)
+const Award = createLucideComponent(LucideAward)
+const Trophy = createLucideComponent(LucideTrophy)
+const Users = createLucideComponent(LucideUsers)
+const Send = createLucideComponent(LucideSend)
+
+// Utility function for className concatenation
+function cn(...classes) {
+  return classes.filter(Boolean).join(' ');
+}
+
+// RotatingText Component
+const RotatingText = forwardRef((props, ref) => {
+  const {
+    texts,
+    transition = { type: 'spring', damping: 25, stiffness: 300 },
+    initial = { y: '100%', opacity: 0 },
+    animate = { y: 0, opacity: 1 },
+    exit = { y: '-120%', opacity: 0 },
+    animatePresenceMode = 'wait',
+    animatePresenceInitial = false,
+    rotationInterval = 2000,
+    staggerDuration = 0,
+    staggerFrom = 'first',
+    loop = true,
+    auto = true,
+    splitBy = 'characters',
+    onNext,
+    mainClassName,
+    splitLevelClassName,
+    elementLevelClassName,
+    ...rest
+  } = props;
+
+  const [currentTextIndex, setCurrentTextIndex] = useState(0);
+
+  const splitIntoCharacters = text => {
+    if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+      const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' });
+      return Array.from(segmenter.segment(text), segment => segment.segment);
+    }
+    return Array.from(text);
+  };
+
+  const elements = useMemo(() => {
+    const currentText = texts[currentTextIndex];
+    if (splitBy === 'characters') {
+      const words = currentText.split(' ');
+      return words.map((word, i) => ({
+        characters: splitIntoCharacters(word),
+        needsSpace: i !== words.length - 1
+      }));
+    }
+    if (splitBy === 'words') {
+      return currentText.split(' ').map((word, i, arr) => ({
+        characters: [word],
+        needsSpace: i !== arr.length - 1
+      }));
+    }
+    if (splitBy === 'lines') {
+      return currentText.split('\n').map((line, i, arr) => ({
+        characters: [line],
+        needsSpace: i !== arr.length - 1
+      }));
+    }
+
+    return currentText.split(splitBy).map((part, i, arr) => ({
+      characters: [part],
+      needsSpace: i !== arr.length - 1
+    }));
+  }, [texts, currentTextIndex, splitBy]);
+
+  const getStaggerDelay = useCallback(
+    (index, totalChars) => {
+      const total = totalChars;
+      if (staggerFrom === 'first') return index * staggerDuration;
+      if (staggerFrom === 'last') return (total - 1 - index) * staggerDuration;
+      if (staggerFrom === 'center') {
+        const center = Math.floor(total / 2);
+        return Math.abs(center - index) * staggerDuration;
+      }
+      if (staggerFrom === 'random') {
+        const randomIndex = Math.floor(Math.random() * total);
+        return Math.abs(randomIndex - index) * staggerDuration;
+      }
+      return Math.abs(staggerFrom - index) * staggerDuration;
+    },
+    [staggerFrom, staggerDuration]
+  );
+
+  const handleIndexChange = useCallback(
+    newIndex => {
+      setCurrentTextIndex(newIndex);
+      if (onNext) onNext(newIndex);
+    },
+    [onNext]
+  );
+
+  const next = useCallback(() => {
+    const nextIndex = currentTextIndex === texts.length - 1 ? (loop ? 0 : currentTextIndex) : currentTextIndex + 1;
+    if (nextIndex !== currentTextIndex) {
+      handleIndexChange(nextIndex);
+    }
+  }, [currentTextIndex, texts.length, loop, handleIndexChange]);
+
+  const previous = useCallback(() => {
+    const prevIndex = currentTextIndex === 0 ? (loop ? texts.length - 1 : currentTextIndex) : currentTextIndex - 1;
+    if (prevIndex !== currentTextIndex) {
+      handleIndexChange(prevIndex);
+    }
+  }, [currentTextIndex, texts.length, loop, handleIndexChange]);
+
+  const jumpTo = useCallback(
+    index => {
+      const validIndex = Math.max(0, Math.min(index, texts.length - 1));
+      if (validIndex !== currentTextIndex) {
+        handleIndexChange(validIndex);
+      }
+    },
+    [texts.length, currentTextIndex, handleIndexChange]
+  );
+
+  const reset = useCallback(() => {
+    if (currentTextIndex !== 0) {
+      handleIndexChange(0);
+    }
+  }, [currentTextIndex, handleIndexChange]);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      next,
+      previous,
+      jumpTo,
+      reset
+    }),
+    [next, previous, jumpTo, reset]
+  );
+
+  useEffect(() => {
+    if (!auto) return;
+    const intervalId = setInterval(next, rotationInterval);
+    return () => clearInterval(intervalId);
+  }, [next, rotationInterval, auto]);
+
+  return (
+    <motion.span className={cn('text-rotate', mainClassName)} {...rest} layout transition={transition}>
+      <span className="text-rotate-sr-only">{texts[currentTextIndex]}</span>
+      <AnimatePresence mode={animatePresenceMode} initial={animatePresenceInitial}>
+        <motion.span
+          key={currentTextIndex}
+          className={cn(splitBy === 'lines' ? 'text-rotate-lines' : 'text-rotate')}
+          layout
+          aria-hidden="true"
+        >
+          {elements.map((wordObj, wordIndex, array) => {
+            const previousCharsCount = array.slice(0, wordIndex).reduce((sum, word) => sum + word.characters.length, 0);
+            return (
+              <span key={wordIndex} className={cn('text-rotate-word', splitLevelClassName)}>
+                {wordObj.characters.map((char, charIndex) => (
+                  <motion.span
+                    key={charIndex}
+                    initial={initial}
+                    animate={animate}
+                    exit={exit}
+                    transition={{
+                      ...transition,
+                      delay: getStaggerDelay(
+                        previousCharsCount + charIndex,
+                        array.reduce((sum, word) => sum + word.characters.length, 0)
+                      )
+                    }}
+                    className={cn('text-rotate-element', elementLevelClassName)}
+                  >
+                    {char}
+                  </motion.span>
+                ))}
+                {wordObj.needsSpace && <span className="text-rotate-space"> </span>}
+              </span>
+            );
+          })}
+        </motion.span>
+      </AnimatePresence>
+    </motion.span>
+  );
+});
+
+RotatingText.displayName = 'RotatingText';
 
 // Bootstrap Header Component
 const Header = ({ activeSection, setActiveSection }) => {
@@ -156,7 +425,22 @@ const Hero = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
             >
-              AI Engineer 
+              <RotatingText
+                texts={[
+                  'AI Engineer',
+                  'Machine Learning Developer',
+                  'Automation Engineer',
+                  'Open Source Contributor'
+                ]}
+                rotationInterval={3000}
+                transition={{ type: 'spring', damping: 20, stiffness: 200 }}
+                mainClassName="rotating-text-hero"
+                splitBy="words"
+                staggerDuration={0.1}
+                initial={{ y: '50%', opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: '-50%', opacity: 0 }}
+              />
             </motion.h2>
             
             <motion.p
@@ -392,7 +676,7 @@ const Skills = () => {
     {
       icon: <Brain size={32} />,
       title: 'AI/ML Frameworks',
-      skills: ['LangChain', 'RAG', 'LLMs', 'Hugging Face', 'Transformers', 'Google Gemini']
+      skills: ['LangChain', 'RAG', 'LLMs', 'Hugging Face', 'Transformers', 'Google Gemini Gemini']
     },
     {
       icon: <Database size={32} />,
