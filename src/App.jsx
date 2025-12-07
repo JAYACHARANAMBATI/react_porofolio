@@ -328,7 +328,6 @@ const Header = ({ activeSection, setActiveSection }) => {
           transition={{ type: 'spring', stiffness: 400, damping: 10 }}
         >
           <span className="brand-text me-2">JC</span>
-          <span className="brand-subtitle">Portfolio</span>
         </motion.a>
 
         <button 
