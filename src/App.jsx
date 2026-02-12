@@ -472,7 +472,7 @@ const Hero = () => {
               </motion.a>
               
               <motion.a
-                href="https://drive.google.com/file/d/1aA8HxEdkKtXmq5dCdv11HlihkeTuVojx/view"
+                href="https://drive.google.com/file/d/1pDE7uK2caF27YZfnb9l-jeXMY1pAg9mj/view"
                 className="btn btn-secondary"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
